@@ -173,6 +173,155 @@ function playFanfare() {
   } catch (e) { console.debug(e); }
 }
 
+const SLOT_SYMBOLS = ["🍒", "🍋", "🍀", "⭐", "🎰", "💎", "🔔", "🍇"];
+
+const WIN_COMBOS: Record<string, string> = {
+  "🍒🍒🍒": "Вишенки! Сладкая жизнь впереди 🍒",
+  "🍋🍋🍋": "Три лимона! Зато ты — лимонад из любых ситуаций 🍋",
+  "🍀🍀🍀": "Джекпот удачи! Фартовая именинница 🍀",
+  "⭐⭐⭐": "Три звезды! Ты — звезда этого вечера ⭐",
+  "🎰🎰🎰": "ДЖЕКПОТ! Катя срывает банк! 🎰",
+  "💎💎💎": "Бриллианты! Ты бесценна 💎",
+  "🔔🔔🔔": "Колокола! Пора праздновать 🔔",
+  "🍇🍇🍇": "Виноград! Пусть жизнь будет сладкой 🍇",
+};
+
+function SlotMachine() {
+  const [reels, setReels] = useState([0, 0, 0]);
+  const [spinning, setSpinning] = useState([false, false, false]);
+  const [result, setResult] = useState<string | null>(null);
+  const [showResult, setShowResult] = useState(false);
+  const [credits, setCredits] = useState(10);
+  const [isWin, setIsWin] = useState(false);
+
+  const spin = () => {
+    if (spinning.some(Boolean) || credits <= 0) return;
+    setCredits(c => c - 1);
+    setShowResult(false);
+    setResult(null);
+    setIsWin(false);
+    setSpinning([true, true, true]);
+
+    const finalReels = [
+      Math.floor(Math.random() * SLOT_SYMBOLS.length),
+      Math.floor(Math.random() * SLOT_SYMBOLS.length),
+      Math.floor(Math.random() * SLOT_SYMBOLS.length),
+    ];
+
+    // stop reels one by one
+    [0, 1, 2].forEach((i) => {
+      setTimeout(() => {
+        setReels(prev => { const n = [...prev]; n[i] = finalReels[i]; return n; });
+        setSpinning(prev => { const n = [...prev]; n[i] = false; return n; });
+
+        if (i === 2) {
+          const combo = finalReels.map(r => SLOT_SYMBOLS[r]).join("");
+          const win = WIN_COMBOS[combo];
+          setTimeout(() => {
+            setShowResult(true);
+            if (win) {
+              setResult(win);
+              setIsWin(true);
+              setCredits(c => c + 5);
+              playFanfare();
+            } else {
+              const twoMatch = finalReels[0] === finalReels[1] || finalReels[1] === finalReels[2] || finalReels[0] === finalReels[2];
+              if (twoMatch) {
+                setResult("Два одинаковых — почти! Ещё чуть-чуть 🤏");
+                setCredits(c => c + 1);
+              } else {
+                setResult("Не в этот раз... но Катя всё равно выигрывает! 😄");
+              }
+            }
+          }, 200);
+        }
+      }, 600 + i * 500);
+    });
+  };
+
+  return (
+    <div
+      className="flex flex-col items-center mb-12"
+      style={{ animation: "floatIn 0.8s ease-out 1.2s both" }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <h2
+        className="text-white text-center mb-6 drop-shadow"
+        style={{ fontFamily: "'Caveat', cursive", fontSize: "clamp(1.5rem, 4vw, 2.5rem)", fontWeight: 700 }}
+      >
+        Слоты на удачу! 🎰
+      </h2>
+
+      <div className="bg-white/20 backdrop-blur-md rounded-3xl border border-white/40 shadow-2xl p-6 w-full max-w-sm">
+        {/* credits */}
+        <div className="flex justify-between items-center mb-5">
+          <span className="text-white/70 text-sm" style={{ fontFamily: "'Rubik', sans-serif" }}>Кредиты</span>
+          <span className="text-white font-bold text-lg" style={{ fontFamily: "'Caveat', cursive", fontSize: "1.4rem" }}>
+            💰 {credits}
+          </span>
+        </div>
+
+        {/* reels */}
+        <div className="flex gap-3 justify-center mb-5">
+          {reels.map((reel, i) => (
+            <div
+              key={i}
+              className="flex-1 bg-white/30 rounded-2xl border-2 border-white/50 flex items-center justify-center overflow-hidden"
+              style={{ height: 90, fontSize: "3.5rem", boxShadow: "inset 0 2px 8px rgba(0,0,0,0.15)" }}
+            >
+              <span
+                style={{
+                  display: "inline-block",
+                  animation: spinning[i] ? "slotSpin 0.1s linear infinite" : "none",
+                  filter: spinning[i] ? "blur(2px)" : "none",
+                  transition: "filter 0.2s",
+                }}
+              >
+                {spinning[i]
+                  ? SLOT_SYMBOLS[Math.floor(Math.random() * SLOT_SYMBOLS.length)]
+                  : SLOT_SYMBOLS[reel]}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* result */}
+        {showResult && result && (
+          <div
+            className={`mb-4 rounded-2xl px-4 py-3 text-center ${isWin ? "bg-yellow-400/40 border border-yellow-300/60" : "bg-white/15 border border-white/30"}`}
+            style={{ animation: "dropIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both" }}
+          >
+            <p className="text-white font-bold" style={{ fontFamily: "'Caveat', cursive", fontSize: "1.15rem" }}>
+              {isWin && <span className="text-yellow-200">🏆 ВЫИГРЫШ! </span>}
+              {result}
+            </p>
+          </div>
+        )}
+
+        {/* spin button */}
+        <button
+          onClick={spin}
+          disabled={spinning.some(Boolean) || credits <= 0}
+          className="w-full bg-white text-pink-500 font-black py-4 rounded-2xl shadow-xl text-xl hover:scale-105 active:scale-95 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+          style={{ fontFamily: "'Rubik', sans-serif", fontSize: "1.2rem" }}
+        >
+          {credits <= 0 ? "Нет кредитов 😢" : spinning.some(Boolean) ? "Крутится... 🌀" : "🎰 Крутить!"}
+        </button>
+
+        {credits <= 0 && (
+          <button
+            onClick={() => { setCredits(10); setShowResult(false); }}
+            className="w-full mt-3 bg-white/20 text-white border border-white/40 font-bold py-3 rounded-2xl hover:bg-white/30 transition-all"
+            style={{ fontFamily: "'Rubik', sans-serif" }}
+          >
+            Ещё 10 кредитов 🎁
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function BalloonCard({ wish, index }: { wish: typeof WISHES[0]; index: number }) {
   const handleClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
@@ -407,6 +556,8 @@ export default function Index() {
               </div>
             </div>
 
+            <SlotMachine />
+
             <div className="flex justify-center gap-6 text-6xl mb-6">
               {["🎈", "🎈", "🎈", "🎈", "🎈"].map((b, i) => (
                 <span
@@ -485,6 +636,11 @@ export default function Index() {
         @keyframes pulsebtn {
           0%, 100% { transform: scale(1); }
           50% { transform: scale(1.07); }
+        }
+        @keyframes slotSpin {
+          0% { transform: translateY(-20px); opacity: 0.5; }
+          50% { transform: translateY(0); opacity: 1; }
+          100% { transform: translateY(20px); opacity: 0.5; }
         }
       `}</style>
     </div>
