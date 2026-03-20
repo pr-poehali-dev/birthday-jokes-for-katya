@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, memo } from "react";
 
 const CONFETTI_COLORS = [
   "#FF6B9D", "#FFD93D", "#6BCB77", "#4D96FF", "#FF922B",
@@ -186,7 +186,7 @@ const WIN_COMBOS: Record<string, string> = {
   "🍇🍇🍇": "Виноград! Пусть жизнь будет сладкой 🍇",
 };
 
-function SlotMachine() {
+const SlotMachine = memo(function SlotMachine() {
   const [reels, setReels] = useState([0, 0, 0]);
   const [displayed, setDisplayed] = useState([0, 0, 0]);
   const [spinning, setSpinning] = useState([false, false, false]);
@@ -330,7 +330,7 @@ function SlotMachine() {
       </div>
     </div>
   );
-}
+});
 
 function BalloonCard({ wish, index }: { wish: typeof WISHES[0]; index: number }) {
   const handleClick = useCallback((e: React.MouseEvent) => {
