@@ -188,11 +188,13 @@ const WIN_COMBOS: Record<string, string> = {
 
 function SlotMachine() {
   const [reels, setReels] = useState([0, 0, 0]);
+  const [displayed, setDisplayed] = useState([0, 0, 0]);
   const [spinning, setSpinning] = useState([false, false, false]);
   const [result, setResult] = useState<string | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [credits, setCredits] = useState(10);
   const [isWin, setIsWin] = useState(false);
+  const intervalsRef = useRef<ReturnType<typeof setInterval>[]>([]);
 
   const spin = () => {
     if (spinning.some(Boolean) || credits <= 0) return;
@@ -208,9 +210,20 @@ function SlotMachine() {
       Math.floor(Math.random() * SLOT_SYMBOLS.length),
     ];
 
-    // stop reels one by one
+    // animate each reel separately with its own interval
     [0, 1, 2].forEach((i) => {
+      const iv = setInterval(() => {
+        setDisplayed(prev => {
+          const n = [...prev];
+          n[i] = Math.floor(Math.random() * SLOT_SYMBOLS.length);
+          return n;
+        });
+      }, 80);
+      intervalsRef.current[i] = iv;
+
       setTimeout(() => {
+        clearInterval(intervalsRef.current[i]);
+        setDisplayed(prev => { const n = [...prev]; n[i] = finalReels[i]; return n; });
         setReels(prev => { const n = [...prev]; n[i] = finalReels[i]; return n; });
         setSpinning(prev => { const n = [...prev]; n[i] = false; return n; });
 
@@ -235,7 +248,7 @@ function SlotMachine() {
             }
           }, 200);
         }
-      }, 600 + i * 500);
+      }, 700 + i * 500);
     });
   };
 
@@ -263,7 +276,7 @@ function SlotMachine() {
 
         {/* reels */}
         <div className="flex gap-3 justify-center mb-5">
-          {reels.map((reel, i) => (
+          {displayed.map((sym, i) => (
             <div
               key={i}
               className="flex-1 bg-white/30 rounded-2xl border-2 border-white/50 flex items-center justify-center overflow-hidden"
@@ -272,14 +285,11 @@ function SlotMachine() {
               <span
                 style={{
                   display: "inline-block",
-                  animation: spinning[i] ? "slotSpin 0.1s linear infinite" : "none",
-                  filter: spinning[i] ? "blur(2px)" : "none",
-                  transition: "filter 0.2s",
+                  filter: spinning[i] ? "blur(1.5px)" : "none",
+                  transition: spinning[i] ? "none" : "filter 0.15s",
                 }}
               >
-                {spinning[i]
-                  ? SLOT_SYMBOLS[Math.floor(Math.random() * SLOT_SYMBOLS.length)]
-                  : SLOT_SYMBOLS[reel]}
+                {SLOT_SYMBOLS[sym]}
               </span>
             </div>
           ))}
