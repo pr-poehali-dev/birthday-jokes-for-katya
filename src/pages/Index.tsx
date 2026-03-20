@@ -371,25 +371,39 @@ export default function Index() {
               style={{ animation: "floatIn 0.8s ease-out 1s both" }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="inline-block bg-white/25 backdrop-blur-sm rounded-3xl px-8 py-6 shadow-2xl border border-white/40 max-w-2xl">
-                <p
-                  className="text-white leading-relaxed"
-                  style={{ fontFamily: "'Caveat', cursive", fontWeight: 700, fontSize: "clamp(1.2rem, 3vw, 1.6rem)" }}
-                >
-                  Катя Широкова, с днюхой! 🥳
-                  <br /><br />
-                  Желаю тебе, чтобы:
-                  <br /><br />
-                  🔥 Лид на хайп был вечным,
-                  <br />
-                  🙈 Кринж обходил стороной,
-                  <br />
-                  🎂 Челленджи были только лёгкими (типа «съесть тортик и не потолстеть»),
-                  <br />
-                  ✨ А вайб был таким, что все вокруг говорили: «Это же шик! Это же Широкова!»
-                  <br /><br />
-                  Пусть твой кринж-метр всегда будет на нуле, а уровень рофла зашкаливает! 😂 И помни: ты настолько имба, что даже баги судьбы облетают тебя стороной. 💎 Короче с др 🎉
-                </p>
+              <div className="inline-block bg-white/20 backdrop-blur-md rounded-3xl shadow-2xl border border-white/40 max-w-2xl w-full overflow-hidden">
+                <div className="bg-white/30 px-8 py-5 border-b border-white/30">
+                  <p className="text-white text-center" style={{ fontFamily: "'Pacifico', cursive", fontSize: "clamp(1.3rem, 4vw, 2rem)" }}>
+                    Катя Широкова, с днюхой! 🥳
+                  </p>
+                </div>
+                <div className="px-8 py-6">
+                  <p className="text-white/90 text-center mb-5" style={{ fontFamily: "'Caveat', cursive", fontWeight: 700, fontSize: "clamp(1rem, 2.5vw, 1.3rem)" }}>
+                    Желаю тебе, чтобы:
+                  </p>
+                  <div className="flex flex-col gap-3 mb-6">
+                    {[
+                      { emoji: "🔥", text: "Лид на хайп был вечным" },
+                      { emoji: "🙈", text: "Кринж обходил стороной" },
+                      { emoji: "🎂", text: "Челленджи были только лёгкими (типа «съесть тортик и не потолстеть»)" },
+                      { emoji: "✨", text: "А вайб был таким, что все вокруг говорили: «Это же шик! Это же Широкова!»" },
+                    ].map((item, i) => (
+                      <div key={i} className="flex items-start gap-3 bg-white/20 rounded-2xl px-4 py-3">
+                        <span className="text-2xl flex-shrink-0">{item.emoji}</span>
+                        <span className="text-white text-left" style={{ fontFamily: "'Caveat', cursive", fontWeight: 700, fontSize: "clamp(1rem, 2.5vw, 1.25rem)" }}>{item.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="bg-white/25 rounded-2xl px-5 py-4 text-center">
+                    <p style={{ fontFamily: "'Caveat', cursive", fontWeight: 700, fontSize: "clamp(1rem, 2.5vw, 1.25rem)", color: "white" }}>
+                      Пусть твой кринж-метр всегда будет на нуле, а уровень рофла зашкаливает! 😂
+                      <br />
+                      И помни: ты настолько имба, что даже баги судьбы облетают тебя стороной. 💎
+                      <br /><br />
+                      <span style={{ fontSize: "clamp(1.2rem, 3vw, 1.6rem)" }}>Короче с др 🎉</span>
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
 
