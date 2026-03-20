@@ -309,9 +309,7 @@ export default function Index() {
               fontSize: "clamp(1.8rem, 5vw, 3rem)",
               fontWeight: 700,
             }}
-          >
-            Дорогая Катя! 🌸
-          </div>
+          >Дорогая Катя Широкова! 🌸</div>
         </div>
 
         <div
