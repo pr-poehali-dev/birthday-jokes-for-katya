@@ -173,6 +173,201 @@ function playFanfare() {
   } catch (e) { console.debug(e); }
 }
 
+const WHEEL_SEGMENTS = [
+  { label: "Пончик 🍩", color: "#FF6B9D" },
+  { label: "Объятие 🤗", color: "#FFD93D" },
+  { label: "Суперсила 💪", color: "#6BCB77" },
+  { label: "Удача 🍀", color: "#4D96FF" },
+  { label: "Звание QueenBee 👑", color: "#FF922B" },
+  { label: "Кофе ☕", color: "#CC5DE8" },
+  { label: "Смех 😂", color: "#FF4757" },
+  { label: "Единорог 🦄", color: "#2ED573" },
+];
+
+function SpinWheel() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [spinning, setSpinning] = useState(false);
+  const [result, setResult] = useState<string | null>(null);
+  const [showResult, setShowResult] = useState(false);
+  const rotationRef = useRef(0);
+  const animRef = useRef<number>(0);
+
+  const drawWheel = useCallback((rotation: number) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d")!;
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+    const r = cx - 8;
+    const seg = (Math.PI * 2) / WHEEL_SEGMENTS.length;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // shadow
+    ctx.save();
+    ctx.shadowColor = "rgba(0,0,0,0.3)";
+    ctx.shadowBlur = 18;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fillStyle = "#fff";
+    ctx.fill();
+    ctx.restore();
+
+    WHEEL_SEGMENTS.forEach((seg_item, i) => {
+      const startAngle = rotation + i * seg;
+      const endAngle = startAngle + seg;
+
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, r, startAngle, endAngle);
+      ctx.closePath();
+      ctx.fillStyle = seg_item.color;
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255,255,255,0.6)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(startAngle + seg / 2);
+      ctx.textAlign = "right";
+      ctx.fillStyle = "#fff";
+      ctx.font = `bold ${canvas.width < 300 ? 11 : 13}px 'Rubik', sans-serif`;
+      ctx.shadowColor = "rgba(0,0,0,0.4)";
+      ctx.shadowBlur = 4;
+      ctx.fillText(seg_item.label, r - 10, 5);
+      ctx.restore();
+    });
+
+    // center circle
+    ctx.beginPath();
+    ctx.arc(cx, cy, 22, 0, Math.PI * 2);
+    ctx.fillStyle = "#fff";
+    ctx.shadowColor = "rgba(0,0,0,0.2)";
+    ctx.shadowBlur = 8;
+    ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,0.8)";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.fillStyle = "#FF6B9D";
+    ctx.font = "bold 14px 'Rubik', sans-serif";
+    ctx.textAlign = "center";
+    ctx.shadowBlur = 0;
+    ctx.fillText("★", cx, cy + 5);
+  }, []);
+
+  useEffect(() => {
+    drawWheel(0);
+  }, [drawWheel]);
+
+  const spin = () => {
+    if (spinning) return;
+    setSpinning(true);
+    setShowResult(false);
+    setResult(null);
+
+    const totalRotation = Math.PI * 2 * (8 + Math.random() * 6);
+    const duration = 4500;
+    const start = performance.now();
+    const startRot = rotationRef.current;
+
+    const easeOut = (t: number) => 1 - Math.pow(1 - t, 4);
+
+    const animate = (now: number) => {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = easeOut(progress);
+      const currentRot = startRot + totalRotation * eased;
+      rotationRef.current = currentRot;
+      drawWheel(currentRot);
+
+      if (progress < 1) {
+        animRef.current = requestAnimationFrame(animate);
+      } else {
+        setSpinning(false);
+        const seg = (Math.PI * 2) / WHEEL_SEGMENTS.length;
+        // pointer is at top (- Math.PI/2), find which segment is there
+        const normalized = (((-currentRot - Math.PI / 2) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+        const idx = Math.floor(normalized / seg) % WHEEL_SEGMENTS.length;
+        setResult(WHEEL_SEGMENTS[idx].label);
+        setTimeout(() => setShowResult(true), 100);
+        playFanfare();
+        // burst confetti from center
+        const canvas = canvasRef.current;
+        if (canvas) {
+          const rect = canvas.getBoundingClientRect();
+          burstConfettiAt(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        }
+      }
+    };
+
+    animRef.current = requestAnimationFrame(animate);
+  };
+
+  return (
+    <div
+      className="flex flex-col items-center mb-12"
+      style={{ animation: "floatIn 0.8s ease-out 1.2s both" }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <h2
+        className="text-white text-center mb-6 drop-shadow"
+        style={{ fontFamily: "'Caveat', cursive", fontSize: "clamp(1.5rem, 4vw, 2.5rem)", fontWeight: 700 }}
+      >
+        Крути колесо судьбы! 🎡
+      </h2>
+
+      <div className="relative flex items-center justify-center">
+        {/* pointer */}
+        <div
+          className="absolute z-10"
+          style={{ top: -2, left: "50%", transform: "translateX(-50%)", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.4))" }}
+        >
+          <div style={{
+            width: 0, height: 0,
+            borderLeft: "14px solid transparent",
+            borderRight: "14px solid transparent",
+            borderTop: "28px solid white",
+          }} />
+        </div>
+
+        <canvas
+          ref={canvasRef}
+          width={300}
+          height={300}
+          className="rounded-full cursor-pointer hover:scale-105 transition-transform duration-200"
+          style={{
+            filter: spinning ? "brightness(1.08)" : "none",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.25)",
+          }}
+          onClick={spin}
+        />
+      </div>
+
+      <button
+        onClick={spin}
+        disabled={spinning}
+        className="mt-6 bg-white text-pink-500 font-black px-10 py-4 rounded-full shadow-2xl text-xl hover:scale-105 active:scale-95 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+        style={{ fontFamily: "'Rubik', sans-serif", fontSize: "1.2rem" }}
+      >
+        {spinning ? "Крутится... 🌀" : "🎰 Крутить!"}
+      </button>
+
+      {showResult && result && (
+        <div
+          className="mt-6 bg-white/25 backdrop-blur-sm border border-white/50 rounded-3xl px-8 py-5 text-center"
+          style={{ animation: "dropIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both" }}
+        >
+          <p className="text-white/80 text-sm mb-1" style={{ fontFamily: "'Rubik', sans-serif" }}>Катя получает...</p>
+          <p className="text-white font-bold" style={{ fontFamily: "'Caveat', cursive", fontSize: "clamp(1.4rem, 4vw, 2rem)" }}>
+            {result}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function BalloonCard({ wish, index }: { wish: typeof WISHES[0]; index: number }) {
   const handleClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
@@ -406,6 +601,8 @@ export default function Index() {
                 </div>
               </div>
             </div>
+
+            <SpinWheel />
 
             <div className="flex justify-center gap-6 text-6xl mb-6">
               {["🎈", "🎈", "🎈", "🎈", "🎈"].map((b, i) => (
