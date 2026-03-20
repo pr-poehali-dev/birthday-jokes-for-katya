@@ -406,11 +406,31 @@ export default function Index() {
             </div>
 
             <p
-              className="text-white/80 text-center text-sm pb-10"
+              className="text-white/80 text-center text-sm"
               style={{ fontFamily: "'Rubik', sans-serif" }}
             >
               Кликай куда угодно — везде хлопушки! 🎊
             </p>
+
+            <div className="text-center mt-8 pb-10" onClick={(e) => e.stopPropagation()}>
+              <div
+                className="inline-block bg-white/15 backdrop-blur-sm border border-white/30 rounded-2xl px-6 py-3"
+                style={{ animation: "floatIn 0.6s ease-out 1.5s both" }}
+              >
+                <p
+                  className="text-white/70 text-sm tracking-widest uppercase"
+                  style={{ fontFamily: "'Rubik', sans-serif", letterSpacing: "0.15em" }}
+                >
+                  с любовью от
+                </p>
+                <p
+                  className="text-white font-bold mt-0.5"
+                  style={{ fontFamily: "'Caveat', cursive", fontSize: "1.4rem" }}
+                >
+                  timohin kot 🐱
+                </p>
+              </div>
+            </div>
           </div>
         )}
       </div>
